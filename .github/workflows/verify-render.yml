@@ -1,0 +1,42 @@
+# Temporary workflow used to inspect the rendered site output
+name: Verify rendered site output
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.328.0
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          cache-version: 0
+      - name: Build with Jekyll
+        run: bundle exec jekyll build --baseurl "/LJT-Homepage"
+        env:
+          JEKYLL_ENV: production
+      - name: Inspect rendered output
+        run: |
+          echo "=== HOME PAGE SECTIONS ==="
+          grep -o -E "Academic Background|Research Experience|Publications|Research Interests|Skills|Contact Information" _site/index.html | sort | uniq -c
+          echo "=== HOME PAGE DETAILS ==="
+          grep -c "Junteng Liu" _site/index.html
+          grep -c "jliugi@connect.ust.hk" _site/index.html
+          grep -c "HKUST NLP Group" _site/index.html
+          grep -c "SynLogic" _site/index.html
+          grep -c "LJT-Homepage/publications" _site/index.html
+          echo "=== PUBLICATIONS PAGE TITLES ==="
+          for t in "SynLogic" "Perception Bottleneck" "Universal Truthfulness" "In-Context Sharpness" "C-Eval" "Composing Parameter-Efficient"; do echo -n "$t: "; grep -c "$t" _site/publications/index.html; done
+          echo "=== PUBLICATIONS PAGE MISC ==="
+          grep -c "Junteng Liu" _site/publications/index.html
+          grep -c "Published in" _site/publications/index.html
+          echo "=== HOME PAGE TITLE ==="
+          grep -o -E "<h1[^>]*>[^<]*" _site/index.html | head -n 2
